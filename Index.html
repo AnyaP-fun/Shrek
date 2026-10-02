@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Ultimate Shrek Quiz</title>
+    <!-- Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            background-color: #7a9928;
+            background-image: radial-gradient(#7a9928, #3b4d13);
+            color: #3E2723;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 40px 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+        .quiz-container {
+            background-color: #f4e8d3;
+            width: 100%;
+            max-width: 600px;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+            border: 6px solid #5C4033;
+            margin: auto;
+        }
+        h1 {
+            color: #4a5d23;
+            font-size: 2.5em;
+            margin-bottom: 5px;
+        }
+        h2 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .btn {
+            padding: 15px;
+            background-color: #8c7355;
+            color: white;
+            border: 3px solid #5C4033;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        .btn:hover:not(:disabled) {
+            background-color: #5C4033;
+        }
+        .btn:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+        .correct { background-color: #2e8b57 !important; }
+        .wrong { background-color: #b22222 !important; }
+        .hidden { display: none !important; }
+        #next-btn {
+            margin-top: 20px;
+            background-color: #4a5d23;
+            font-size: 18px;
+            padding: 10px 30px;
+        }
+        
+        /* Summary Page Styles */
+        .summary-box {
+            background-color: rgba(255, 255, 255, 0.7);
+            border: 3px solid #8c7355;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            text-align: left;
+            font-size: 14px;
+        }
+        .summary-item {
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed #8c7355;
+        }
+        .summary-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .text-correct { color: #1e6b3e; font-weight: bold; }
+        .text-wrong { color: #a11a1a; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <!-- Start Screen (Only One!) -->
+    <div id="start-screen">
+        <h1>What Are You Doing In My Swamp?!</h1>
+        <p>Test your Shrek knowledge against your friends.</p>
+        <button class="btn" style="background-color: #4a5d23;" onclick="startQuiz()">Start Quiz</button>
+    </div>
+
+    <!-- Question Screen -->
+    <div id="question-screen" class="hidden">
+        <h2 id="question-text">Question goes here</h2>
+        <div class="btn-grid" id="answer-buttons">
+            <!-- Buttons injected by JavaScript -->
+        </div>
+        <button id="next-btn" class="btn hidden" onclick="setNextQuestion()">Next</button>
+    </div>
+
+    <!-- Score Screen -->
+    <div id="score-screen" class="hidden">
+        <h1>Ogres Have Layers!</h1>
+        <h2 id="score-text"></h2>
+        <p id="score-message"></p>
+        
+        <div id="summary-container" class="summary-box">
+            <!-- Summary items injected by JavaScript -->
+        </div>
+
+        <button class="btn" style="background-color: #4a5d23;" onclick="location.reload()">Play Again</button>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        {
+            question: "What is the name of the kingdom Fiona's parents rule?",
+            answers: [
+                { text: "Duloc", correct: false },
+                { text: "Far Far Away", correct: true },
+                { text: "The Swamp", correct: false },
+                { text: "Camelot", correct: false }
+            ]
+        },
+        {
+            question: "What character is colourblind?",
+            answers: [
+                { text: "Puss in Boots", correct: false },
+                { text: "Shrek", correct: false },
+                { text: "Donkey", correct: true },
+                { text: "Lord Farquaad", correct: false }
+            ]
+        },
+        {
+            question: "In Shrek 2, what potion does Shrek steal from the Fairy Godmother?",
+            answers: [
+                { text: "Happily Ever After", correct: true },
+                { text: "True Love's Kiss", correct: false },
+                { text: "Beauty Sleep", correct: false },
+                { text: "Love Potion No. 9", correct: false }
+            ]
+        },
+        {
+            question: "What is the name of the giant gingerbread man created in Shrek 2?",
+            answers: [
+                { text: "Gingy", correct: false },
+                { text: "Behemoth", correct: false },
+                { text: "Mongo", correct: true },
+                { text: "Sugar Plum", correct: false }
+            ]
+        },
+        {
+            question: "Who is the main villain in the very first Shrek movie?",
+            answers: [
+                { text: "Prince Charming", correct: false },
+                { text: "Rumpelstiltskin", correct: false },
+                { text: "Fairy Godmother", correct: false },
+                { text: "Lord Farquaad", correct: true }
+            ]
+        },
+        {
+            question: "What are Donkey and Dragon's babies called?",
+            answers: [
+                { text: "Donkagons", correct: false },
+                { text: "Dronkeys", correct: true },
+                { text: "Dragkeys", correct: false },
+                { text: "Mutants", correct: false }
+            ]
+        },
+        {
+            question: "Which of these is NOT the name of one of Shrek and Fiona's babies?",
+            answers: [
+                { text: "Farkle", correct: false },
+                { text: "Fergus", correct: false },
+                { text: "Farnsworth", correct: true },
+                { text: "Felicia", correct: false }
+            ]
+        },
+        {
+            question: "What song does the Fairy Godmother sing at the royal ball in Shrek 2?",
+            answers: [
+                { text: "All Star", correct: false },
+                { text: "I'm a Believer", correct: false },
+                { text: "Livin' La Vida Loca", correct: false },
+                { text: "Holding Out for a Hero", correct: true }
+            ]
+        },
+        {
+            question: "What animal does Shrek inflate like a balloon for Fiona in the first movie?",
+            answers: [
+                { text: "A snake", correct: false },
+                { text: "A frog", correct: true },
+                { text: "A mouse", correct: false },
+                { text: "A lizard", correct: false }
+            ]
+        },
+        {
+            question: "What is the name of the Ugly Stepsister who works as a bartender at the Poison Apple?",
+            answers: [
+                { text: "Mabel", correct: false },
+                { text: "Doris", correct: true },
+                { text: "Gretchen", correct: false },
+                { text: "Bertha", correct: false }
+            ]
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let userRecord = []; 
+
+    const startScreen = document.getElementById('start-screen');
+    const questionScreen = document.getElementById('question-screen');
+    const scoreScreen = document.getElementById('score-screen');
+    const questionElement = document.getElementById('question-text');
+    const answerButtonsElement = document.getElementById('answer-buttons');
+    const nextButton = document.getElementById('next-btn');
+    const summaryContainer = document.getElementById('summary-container');
+
+    function startQuiz() {
+        startScreen.classList.add('hidden');
+        questionScreen.classList.remove('hidden');
+        currentQuestionIndex = 0;
+        score = 0;
+        userRecord = [];
+        setNextQuestion();
+    }
+
+    function setNextQuestion() {
+        resetState();
+        showQuestion(questions[currentQuestionIndex]);
+    }
+
+    function showQuestion(question) {
+        questionElement.innerText = question.question;
+        question.answers.forEach(answer => {
+            const button = document.createElement('button');
+            button.innerText = answer.text;
+            button.classList.add('btn');
+            if (answer.correct) {
+                button.dataset.correct = answer.correct;
+            }
+            button.addEventListener('click', selectAnswer);
+            answerButtonsElement.appendChild(button);
+        });
+    }
+
+    function resetState() {
+        nextButton.classList.add('hidden');
+        while (answerButtonsElement.firstChild) {
+            answerButtonsElement.removeChild(answerButtonsElement.firstChild);
+        }
+    }
+
+    function selectAnswer(e) {
+        const selectedButton = e.target;
+        const correct = selectedButton.dataset.correct === "true";
+        const selectedText = selectedButton.innerText;
+        
+        const currentQuestion = questions[currentQuestionIndex];
+        const correctAnswerObj = currentQuestion.answers.find(a => a.correct);
+        const correctAnswerText = correctAnswerObj.text;
+
+        userRecord.push({
+            question: currentQuestion.question,
+            selected: selectedText,
+            isCorrect: correct,
+            correctAnswer: correctAnswerText
+        });
+
+        if (correct) score++;
+        
+        Array.from(answerButtonsElement.children).forEach(button => {
+            setStatusClass(button, button.dataset.correct === "true");
+            button.disabled = true;
+        });
+        
+        if (questions.length > currentQuestionIndex + 1) {
+            nextButton.classList.remove('hidden');
+            currentQuestionIndex++;
+        } else {
+            setTimeout(showScore, 1000); 
+        }
+    }
+
+    function setStatusClass(element, correct) {
+        if (correct) {
+            element.classList.add('correct');
+        } else {
+            element.classList.add('wrong');
+        }
+    }
+
+    function showScore() {
+        questionScreen.classList.add('hidden');
+        scoreScreen.classList.remove('hidden');
+        
+        document.getElementById('score-text').innerText = `You scored ${score} out of ${questions.length}!`;
+        
+        const messageEl = document.getElementById('score-message');
+        if(score === questions.length) {
+            messageEl.innerText = "You're an All Star!";
+            // Fire confetti!
+            confetti({
+                particleCount: 150,
+                spread: 100,
+                origin: { y: 0.6 }
+            });
+        }
+        else if(score >= 7) {
+            messageEl.innerText = "That'll do, Donkey. That'll do.";
+        }
+        else {
+            messageEl.innerText = "You're a bit of a Farquaad. Try again!";
+        }
+
+        summaryContainer.innerHTML = '<h3>How you did:</h3>';
+        
+        userRecord.forEach((record, index) => {
+            const itemDiv = document.createElement('div');
+            itemDiv.classList.add('summary-item');
+            
+            let resultHtml = `<strong>Q${index + 1}: ${record.question}</strong><br>`;
+            
+            if (record.isCorrect) {
+                resultHtml += `<span class="text-correct">✔ You chose: ${record.selected}</span>`;
+            } else {
+                resultHtml += `<span class="text-wrong">✘ You chose: ${record.selected}</span><br>`;
+                resultHtml += `<span class="text-correct">Correct answer: ${record.correctAnswer}</span>`;
+            }
+            
+            itemDiv.innerHTML = resultHtml;
+            summaryContainer.appendChild(itemDiv);
+        });
+    }
+</script>
+
+</body>
+</html>
